@@ -1,0 +1,45 @@
+*
+* lvo/amiatp_lib.i - Amiga assembler LVO offsets for amiatp.library
+*
+_LVOAtpBaseTagList              EQU     -30
+_LVOAtpError                    EQU     -36
+_LVOAtpGetErrorString           EQU     -42
+_LVONewAtpConnection            EQU     -48
+_LVODisposeAtpConnection        EQU     -54
+_LVOSetAtpConnectionAttrsA      EQU     -60
+_LVOAtpLogin                    EQU     -66
+_LVOAtpRefreshSession           EQU     -72
+_LVOAtpLogout                   EQU     -78
+_LVOAtpConnectionGetDid         EQU     -84
+_LVOAtpConnectionGetHandle      EQU     -90
+_LVOAtpConnectionGetLastError   EQU     -96
+_LVONewAtpRecord                EQU     -102
+_LVODisposeAtpRecord            EQU     -108
+_LVOSetAtpRecordAttrsA          EQU     -114
+_LVOAtpGetRecord                EQU     -120
+_LVOAtpCreateRecord             EQU     -126
+_LVOAtpPutRecord                EQU     -132
+_LVOAtpDeleteRecord             EQU     -138
+_LVOAtpListRecords              EQU     -144
+_LVODisposeAtpRecordList        EQU     -150
+_LVOAtpRecordListGetCount       EQU     -156
+_LVOAtpRecordListGetRecord      EQU     -162
+_LVOAtpRecordGetUri             EQU     -168
+_LVOAtpRecordGetCid             EQU     -174
+_LVOAtpRecordGetString          EQU     -180
+_LVOAtpGetTimeline              EQU     -186
+_LVOAtpGetAuthorFeed            EQU     -192
+_LVODisposeAtpFeed              EQU     -198
+_LVOAtpFeedGetCount             EQU     -204
+_LVOAtpFeedGetPost              EQU     -210
+_LVOAtpFeedGetCursor            EQU     -216
+_LVOAtpFeedPostGetAuthorHandle  EQU     -222
+_LVOAtpFeedPostGetText          EQU     -228
+_LVOAtpFeedPostGetUri           EQU     -234
+_LVOAtpGetProfile               EQU     -240
+_LVODisposeAtpProfile           EQU     -246
+_LVOAtpProfileGetHandle         EQU     -252
+_LVOAtpProfileGetDisplayName    EQU     -258
+_LVOAtpProfileGetDescription    EQU     -264
+_LVOAtpCreatePost               EQU     -270
+_LVOAtpResolveHandle            EQU     -276

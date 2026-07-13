@@ -1,0 +1,1056 @@
+TABLE OF CONTENTS
+
+amiatp.library/background
+amiatp.library/errors
+amiatp.library/tags
+amiatp.library/AtpBaseTagList
+amiatp.library/AtpConnectionGetDid
+amiatp.library/AtpConnectionGetHandle
+amiatp.library/AtpConnectionGetLastError
+amiatp.library/AtpCreatePost
+amiatp.library/AtpCreateRecord
+amiatp.library/AtpDeleteRecord
+amiatp.library/AtpDownloadUrl
+amiatp.library/AtpError
+amiatp.library/AtpFeedGetCount
+amiatp.library/AtpFeedGetCursor
+amiatp.library/AtpFeedGetPost
+amiatp.library/AtpFeedPostGetAuthorHandle
+amiatp.library/AtpFeedPostGetAvatarUrl
+amiatp.library/AtpFeedPostGetImageCount
+amiatp.library/AtpFeedPostGetImageUrl
+amiatp.library/AtpFeedPostGetText
+amiatp.library/AtpFeedPostGetUri
+amiatp.library/AtpGetAuthorFeed
+amiatp.library/AtpGetErrorString
+amiatp.library/AtpGetProfile
+amiatp.library/AtpGetRecord
+amiatp.library/AtpGetTimeline
+amiatp.library/AtpListRecords
+amiatp.library/AtpLogin
+amiatp.library/AtpLogout
+amiatp.library/AtpProfileGetDescription
+amiatp.library/AtpProfileGetDisplayName
+amiatp.library/AtpProfileGetHandle
+amiatp.library/AtpPutRecord
+amiatp.library/AtpRecordGetCid
+amiatp.library/AtpRecordGetString
+amiatp.library/AtpRecordGetUri
+amiatp.library/AtpRecordListGetCount
+amiatp.library/AtpRecordListGetRecord
+amiatp.library/AtpRefreshSession
+amiatp.library/AtpResolveHandle
+amiatp.library/DisposeAtpConnection
+amiatp.library/DisposeAtpFeed
+amiatp.library/DisposeAtpProfile
+amiatp.library/DisposeAtpRecord
+amiatp.library/DisposeAtpRecordList
+amiatp.library/NewAtpConnection
+amiatp.library/NewAtpRecord
+amiatp.library/SetAtpConnectionAttrsA
+amiatp.library/SetAtpRecordAttrsA
+amiatp.library/background                   amiatp.library/background
+
+   PURPOSE
+
+   amiatp.library is an AmigaOS AT Protocol (XRPC) client shared library for
+   classic Amiga (OS 3.2 / 4.1).  It wraps amihttp.library for HTTPS transport.
+   Applications hold opaque handles only; sockets, TLS, JWT buffers, and JSON
+   parse trees are never exposed.
+
+   OpenLibrary(AMIATPNAME, AMIATPVERSION) is sufficient.  amihttp.library is
+   opened inside InitLib; do not OpenLibrary("amihttp.library") yourself when
+   using only amiatp.
+
+   API TIERS
+
+   Tier 0 — AtpBaseTagList / AtpError / AtpGetErrorString
+     Per-process defaults (CA path, service URLs, break mask).
+
+   Tier 1 — AtpConnection
+     PDS + AppView settings, session JWTs, owns an internal HttpSession.
+     Login / refresh / logout.
+
+   Tier 2 — AtpRecord / AtpRecordList
+     Generic com.atproto.repo.* get / create / put / delete / list.
+
+   Tier 3 — Bluesky helpers
+     Timeline, author feed, profile, createPost, resolveHandle, CDN download,
+     and feed-post media getters.
+
+   TYPICAL FLOW
+
+   AtpBase = OpenLibrary(AMIATPNAME, AMIATPVERSION);
+   conn = NewAtpConnection();
+   SetAtpConnectionAttrs(conn,
+       ATPA_CA_BUNDLE, (ULONG)"PROGDIR:cacert.pem",
+       ATPA_USERAGENT, (ULONG)"MyApp/1.0",
+       TAG_DONE);
+   if (AtpLogin(conn, "you.bsky.social", app_password) == 0) {
+       struct AtpFeed *feed = NULL;
+       if (AtpGetTimeline(conn, 20, NULL, &feed) == 0) {
+           /* AtpFeedGetPost / AtpFeedPostGetText ... */
+           DisposeAtpFeed(feed);
+       }
+       AtpLogout(conn);
+   }
+   DisposeAtpConnection(conn);
+   CloseLibrary(AtpBase);
+
+   SetAtpConnectionAttrs() is the varargs form of SetAtpConnectionAttrsA()
+   (pragma tagcall).
+
+   OWNERSHIP AND LIFETIME
+
+   - DisposeAtpConnection() frees the connection, JWTs, and HttpSession.
+   - DisposeAtpFeed() / DisposeAtpProfile() / DisposeAtpRecord() /
+     DisposeAtpRecordList() free those objects.
+   - STRPTR returns from getters (DID, handle, post text, image URLs, etc.)
+     are library-owned until the parent handle is disposed.  Do not FreeVec()
+     them.
+   - Disk prefs, app passwords, GUI, and ARexx belong to the application
+     (e.g. Seiten).
+
+   DEFAULTS
+
+   ATPA_SERVICE default:  https://bsky.social
+   ATPA_APPVIEW default:  https://public.api.bsky.app
+   User-Agent default:    amiatp/1.0 (Amiga)
+
+   Authenticated app.bsky.* calls (timeline when logged in) go to the PDS
+   service URL; the PDS proxies to AppView.  Hitting public.api.bsky.app
+   with a session JWT often returns 401.
+
+   SEE ALSO
+	libraries/amiatp.h, SDK/Examples/AtpTest, amihttp.library
+amiatp.library/errors                       amiatp.library/errors
+
+   ERROR MODEL
+
+   Most LVOs return LONG: 0 on success, else ERROR_ATP_* (8900+).
+   AtpError() returns the last library-wide code.
+   AtpConnectionGetLastError() returns the last code for that connection
+   (also mirrored to the library last-error on failure).
+
+   AtpGetErrorString(code) returns a static English string for Printf().
+
+   Codes (libraries/amiatp.h):
+
+	8900  ERROR_ATP_NOT_IMPLEMENTED
+	8901  ERROR_ATP_OUT_OF_MEMORY
+	8902  ERROR_ATP_INVALID_HANDLE
+	8903  ERROR_ATP_INVALID_ARG
+	8904  ERROR_ATP_NO_HTTP          amihttp not available
+	8905  ERROR_ATP_HTTP             transport / Perform failure
+	8906  ERROR_ATP_HTTP_STATUS      non-2xx HTTP status
+	8907  ERROR_ATP_JSON             Lexicon / JSON parse failure
+	8908  ERROR_ATP_AUTH             401 / auth failure
+	8909  ERROR_ATP_NOT_LOGGED_IN
+	8910  ERROR_ATP_BUFFER_TOO_SMALL
+	8911  ERROR_ATP_NOT_FOUND        404
+	8912  ERROR_ATP_XRPC             XRPC error object / empty URI
+
+   Wire HTTP status is mapped into these codes inside XRPC helpers; there is
+   no separate public GetStatusCode on AtpConnection.
+amiatp.library/tags                         amiatp.library/tags
+
+   TIER 0 — AtpBaseTagList (after OpenLibrary)
+
+	ATBT_BREAKMASK          (ULONG) Exec break signal mask for blocking
+	                        XRPC (passed through to amihttp).
+	ATBT_DEFAULT_USERAGENT  (STRPTR) Default User-Agent string.
+	ATBT_CA_BUNDLE_PATH     (STRPTR) Default PEM path for AmiTLS / verify.
+	ATBT_DEFAULT_SERVICE    (STRPTR) Default PDS base URL.
+	ATBT_DEFAULT_APPVIEW    (STRPTR) Default AppView base URL.
+
+   TIER 1 — SetAtpConnectionAttrsA
+
+	ATPA_SERVICE            (STRPTR) PDS base URL (no trailing slash).
+	ATPA_APPVIEW            (STRPTR) AppView base URL.
+	ATPA_CA_BUNDLE          (STRPTR) CA PEM path for this connection.
+	ATPA_USERAGENT          (STRPTR) User-Agent.
+	ATPA_CONNECT_TIMEOUT    (ULONG) Connect timeout seconds.
+	ATPA_READ_TIMEOUT       (ULONG) Read timeout seconds.
+	ATPA_VERBOSE            (BOOL)  When TRUE, Printf() XRPC URL / status /
+	                        JWT length / body previews (CLI debug).
+
+   TIER 2 — SetAtpRecordAttrsA
+
+	ATPR_COLLECTION         (STRPTR) NSIDs e.g. app.bsky.feed.post
+	ATPR_RKEY               (STRPTR) Record key (optional for create)
+	ATPR_REPO               (STRPTR) DID; default is session DID
+	ATPR_JSON_BODY          (STRPTR) Full record JSON escape hatch
+	ATPR_TEXT               (STRPTR) Convenience text for simple posts
+amiatp.library/AtpBaseTagList               amiatp.library/AtpBaseTagList
+
+   NAME
+	AtpBaseTagList -- Set process-wide amiatp defaults.  (V1)
+
+   SYNOPSIS
+	ok = AtpBaseTagList(tags);
+	LONG AtpBaseTagList(struct TagItem *tags);
+
+   FUNCTION
+	Applies Tier 0 tags to the library base after OpenLibrary().  Strings
+	are copied internally.  Pass NULL tags to leave defaults unchanged
+	(still returns success).
+
+   INPUTS
+	tags - Tag list ending in TAG_DONE, or NULL.
+
+   RESULTS
+	Non-zero (TRUE) on success.  0 if the library base is invalid.
+
+   SEE ALSO
+	amiatp.library/tags, AtpError()
+amiatp.library/AtpConnectionGetDid          amiatp.library/AtpConnectionGetDid
+
+   NAME
+	AtpConnectionGetDid -- DID of the logged-in session.  (V1)
+
+   SYNOPSIS
+	did = AtpConnectionGetDid(conn);
+	STRPTR AtpConnectionGetDid(struct AtpConnection *conn);
+
+   FUNCTION
+	Returns the did string from createSession / refreshSession, or NULL
+	if not logged in.
+
+   RESULTS
+	Library-owned STRPTR valid until AtpLogout() or DisposeAtpConnection().
+
+   SEE ALSO
+	AtpConnectionGetHandle(), AtpLogin()
+amiatp.library/AtpConnectionGetHandle       amiatp.library/AtpConnectionGetHandle
+
+   NAME
+	AtpConnectionGetHandle -- Handle of the logged-in session.  (V1)
+
+   SYNOPSIS
+	handle = AtpConnectionGetHandle(conn);
+	STRPTR AtpConnectionGetHandle(struct AtpConnection *conn);
+
+   FUNCTION
+	Returns the handle (e.g. you.bsky.social) from the session, or NULL.
+
+   RESULTS
+	Library-owned STRPTR valid until AtpLogout() or DisposeAtpConnection().
+
+   SEE ALSO
+	AtpConnectionGetDid(), AtpLogin()
+amiatp.library/AtpConnectionGetLastError    amiatp.library/AtpConnectionGetLastError
+
+   NAME
+	AtpConnectionGetLastError -- Last ERROR_ATP_* for this connection.  (V1)
+
+   SYNOPSIS
+	code = AtpConnectionGetLastError(conn);
+	LONG AtpConnectionGetLastError(struct AtpConnection *conn);
+
+   FUNCTION
+	Returns the last error recorded on conn (0 if the last operation
+	succeeded).  Also updates the library last-error on failure paths.
+
+   RESULTS
+	ERROR_ATP_* or 0.  ERROR_ATP_INVALID_HANDLE if conn is NULL/invalid.
+
+   SEE ALSO
+	AtpError(), AtpGetErrorString()
+amiatp.library/AtpCreatePost                amiatp.library/AtpCreatePost
+
+   NAME
+	AtpCreatePost -- Create an app.bsky.feed.post record.  (V1)
+
+   SYNOPSIS
+	err = AtpCreatePost(conn, text, uri_buf, uri_buflen);
+	LONG AtpCreatePost(struct AtpConnection *conn, STRPTR text,
+	     STRPTR uri_buf, ULONG uri_buflen);
+
+   FUNCTION
+	Builds a Lexicon app.bsky.feed.post JSON record with "text" and
+	"createdAt", then POSTs com.atproto.repo.createRecord on the PDS.
+
+	createdAt is derived from the HTTP Date: header when available
+	(ISO-8601 UTC), so posts are not stamped from a mis-set local DateStamp.
+
+	Requires an active login session.  text length is capped at 300
+	characters (Bluesky grapheme limit approximated as bytes).
+
+   INPUTS
+	conn       - Logged-in AtpConnection.
+	text       - Post body (bytes as provided by the app).
+	uri_buf    - Optional buffer for the resulting at:// URI; may be NULL.
+	uri_buflen - Size of uri_buf including NUL.
+
+   RESULTS
+	0 on success.  Else ERROR_ATP_*.  On success with uri_buf, writes a
+	NUL-terminated at:// URI; empty URI after success is ERROR_ATP_XRPC.
+
+   SEE ALSO
+	AtpCreateRecord(), AtpLogin()
+amiatp.library/AtpCreateRecord              amiatp.library/AtpCreateRecord
+
+   NAME
+	AtpCreateRecord -- com.atproto.repo.createRecord.  (V1)
+
+   SYNOPSIS
+	err = AtpCreateRecord(conn, rec);
+	LONG AtpCreateRecord(struct AtpConnection *conn, struct AtpRecord *rec);
+
+   FUNCTION
+	Creates a repo record from attributes set with SetAtpRecordAttrsA().
+	Requires ATPR_COLLECTION and either ATPR_JSON_BODY or ATPR_TEXT.
+	On success, updates the record's URI/CID from the response.
+
+   INPUTS
+	conn - Logged-in AtpConnection.
+	rec  - Configured AtpRecord.
+
+   RESULTS
+	0 on success, else ERROR_ATP_*.
+
+   SEE ALSO
+	NewAtpRecord(), SetAtpRecordAttrsA(), AtpPutRecord()
+amiatp.library/AtpDeleteRecord              amiatp.library/AtpDeleteRecord
+
+   NAME
+	AtpDeleteRecord -- com.atproto.repo.deleteRecord.  (V1)
+
+   SYNOPSIS
+	err = AtpDeleteRecord(conn, rec);
+	LONG AtpDeleteRecord(struct AtpConnection *conn, struct AtpRecord *rec);
+
+   FUNCTION
+	Deletes the record identified by ATPR_COLLECTION + ATPR_RKEY (and
+	optional ATPR_REPO).  Requires login.
+
+   RESULTS
+	0 on success, else ERROR_ATP_*.
+
+   SEE ALSO
+	AtpGetRecord(), AtpCreateRecord()
+amiatp.library/AtpDownloadUrl               amiatp.library/AtpDownloadUrl
+
+   NAME
+	AtpDownloadUrl -- GET an absolute URL to a DOS file.  (V1)
+
+   SYNOPSIS
+	err = AtpDownloadUrl(conn, url, path);
+	LONG AtpDownloadUrl(struct AtpConnection *conn, STRPTR url,
+	     STRPTR path);
+
+   FUNCTION
+	Performs an HTTP(S) GET of url using the connection's HttpSession
+	(same CA bundle / TLS settings as XRPC).  Streams the entity body
+	to path (MODE_NEWFILE).  Intended for CDN thumbs/avatars
+	(cdn.bsky.app), not for Lexicon XRPC.
+
+	Body size is capped at 512KB.  On failure the file is deleted if it
+	was created.
+
+   INPUTS
+	conn - AtpConnection (need not be logged in for public CDN URLs).
+	url  - Absolute http:// or https:// URL.
+	path - Amiga DOS path (e.g. T:Seiten/img1.img).
+
+   RESULTS
+	0 on success, else ERROR_ATP_*.
+
+   NOTES
+	Does not set Authorization.  For authenticated blob fetch, use
+	repo/blob XRPC helpers when added.
+
+   SEE ALSO
+	AtpFeedPostGetImageUrl(), AtpFeedPostGetAvatarUrl()
+amiatp.library/AtpError                     amiatp.library/AtpError
+
+   NAME
+	AtpError -- Last library-wide ERROR_ATP_* code.  (V1)
+
+   SYNOPSIS
+	code = AtpError();
+	LONG AtpError(void);
+
+   FUNCTION
+	Returns the last error stored on the library base (shared across
+	connections when failures record through atp_conn_error).
+
+   RESULTS
+	ERROR_ATP_* or 0.
+
+   SEE ALSO
+	AtpConnectionGetLastError(), AtpGetErrorString()
+amiatp.library/AtpFeedGetCount              amiatp.library/AtpFeedGetCount
+
+   NAME
+	AtpFeedGetCount -- Number of posts in a feed object.  (V1)
+
+   SYNOPSIS
+	n = AtpFeedGetCount(feed);
+	ULONG AtpFeedGetCount(struct AtpFeed *feed);
+
+   FUNCTION
+	Returns how many posts were parsed into the feed page.
+
+   RESULTS
+	Count, or 0 if feed is NULL/invalid.  Capped at 50 posts per page.
+
+   SEE ALSO
+	AtpFeedGetPost(), AtpGetTimeline()
+amiatp.library/AtpFeedGetCursor             amiatp.library/AtpFeedGetCursor
+
+   NAME
+	AtpFeedGetCursor -- Opaque pagination cursor for the next page.  (V1)
+
+   SYNOPSIS
+	cursor = AtpFeedGetCursor(feed);
+	STRPTR AtpFeedGetCursor(struct AtpFeed *feed);
+
+   FUNCTION
+	Returns the "cursor" string from getTimeline / getAuthorFeed, or NULL
+	if there is no further page.  Pass to the next AtpGetTimeline() /
+	AtpGetAuthorFeed() call.
+
+   RESULTS
+	Library-owned STRPTR until DisposeAtpFeed().
+
+   SEE ALSO
+	AtpGetTimeline(), AtpGetAuthorFeed()
+amiatp.library/AtpFeedGetPost               amiatp.library/AtpFeedGetPost
+
+   NAME
+	AtpFeedGetPost -- Pointer to the Nth post in a feed.  (V1)
+
+   SYNOPSIS
+	post = AtpFeedGetPost(feed, index);
+	struct AtpFeedPost *AtpFeedGetPost(struct AtpFeed *feed, ULONG index);
+
+   FUNCTION
+	Returns an opaque post pointer for use with AtpFeedPostGet*().
+	index is 0-based.  The pointer is owned by the feed.
+
+   RESULTS
+	Post pointer, or NULL if out of range / invalid feed.
+
+   SEE ALSO
+	AtpFeedGetCount(), AtpFeedPostGetText()
+amiatp.library/AtpFeedPostGetAuthorHandle   amiatp.library/AtpFeedPostGetAuthorHandle
+
+   NAME
+	AtpFeedPostGetAuthorHandle -- Author handle of a feed post.  (V1)
+
+   SYNOPSIS
+	handle = AtpFeedPostGetAuthorHandle(post);
+	STRPTR AtpFeedPostGetAuthorHandle(struct AtpFeedPost *post);
+
+   FUNCTION
+	Returns author.handle from the feed view.
+
+   RESULTS
+	Library-owned STRPTR until DisposeAtpFeed(), or NULL.
+amiatp.library/AtpFeedPostGetAvatarUrl      amiatp.library/AtpFeedPostGetAvatarUrl
+
+   NAME
+	AtpFeedPostGetAvatarUrl -- Author avatar CDN URL.  (V1)
+
+   SYNOPSIS
+	url = AtpFeedPostGetAvatarUrl(post);
+	STRPTR AtpFeedPostGetAvatarUrl(struct AtpFeedPost *post);
+
+   FUNCTION
+	Returns author.avatar from the feed view, if present.
+
+   RESULTS
+	Library-owned https URL, or NULL.  Valid until DisposeAtpFeed().
+
+   SEE ALSO
+	AtpDownloadUrl(), AtpFeedPostGetImageUrl()
+amiatp.library/AtpFeedPostGetImageCount     amiatp.library/AtpFeedPostGetImageCount
+
+   NAME
+	AtpFeedPostGetImageCount -- Number of embed image thumbs (0..4).  (V1)
+
+   SYNOPSIS
+	n = AtpFeedPostGetImageCount(post);
+	ULONG AtpFeedPostGetImageCount(struct AtpFeedPost *post);
+
+   FUNCTION
+	Counts thumb (or fullsize) URLs collected from embed views:
+	app.bsky.embed.images#view, recordWithMedia media.images, and
+	external.thumb.  At most 4 URLs are stored per post.
+
+   RESULTS
+	0..4.
+
+   SEE ALSO
+	AtpFeedPostGetImageUrl()
+amiatp.library/AtpFeedPostGetImageUrl       amiatp.library/AtpFeedPostGetImageUrl
+
+   NAME
+	AtpFeedPostGetImageUrl -- Embed image thumb/fullsize URL by index.  (V1)
+
+   SYNOPSIS
+	url = AtpFeedPostGetImageUrl(post, index);
+	STRPTR AtpFeedPostGetImageUrl(struct AtpFeedPost *post, ULONG index);
+
+   FUNCTION
+	Returns one stored embed image URL.
+
+   INPUTS
+	post  - Feed post.
+	index - 0-based; must be < AtpFeedPostGetImageCount(post).
+
+   RESULTS
+	Library-owned URL, or NULL if out of range.
+
+   SEE ALSO
+	AtpFeedPostGetImageCount(), AtpDownloadUrl()
+amiatp.library/AtpFeedPostGetText           amiatp.library/AtpFeedPostGetText
+
+   NAME
+	AtpFeedPostGetText -- Post body text from the Lexicon record.  (V1)
+
+   SYNOPSIS
+	text = AtpFeedPostGetText(post);
+	STRPTR AtpFeedPostGetText(struct AtpFeedPost *post);
+
+   FUNCTION
+	Returns record.text from the feed view.  May be UTF-8; the app is
+	responsible for display folding (e.g. Seiten utf8fold).
+
+   RESULTS
+	Library-owned STRPTR until DisposeAtpFeed(), or NULL.
+amiatp.library/AtpFeedPostGetUri            amiatp.library/AtpFeedPostGetUri
+
+   NAME
+	AtpFeedPostGetUri -- at:// URI of a feed post.  (V1)
+
+   SYNOPSIS
+	uri = AtpFeedPostGetUri(post);
+	STRPTR AtpFeedPostGetUri(struct AtpFeedPost *post);
+
+   FUNCTION
+	Returns post.uri from the feed view.
+
+   RESULTS
+	Library-owned STRPTR until DisposeAtpFeed(), or NULL.
+amiatp.library/AtpGetAuthorFeed             amiatp.library/AtpGetAuthorFeed
+
+   NAME
+	AtpGetAuthorFeed -- Fetch an actor's feed.  (V1)
+
+   SYNOPSIS
+	err = AtpGetAuthorFeed(conn, actor, limit, cursor, &feed);
+	LONG AtpGetAuthorFeed(struct AtpConnection *conn, STRPTR actor,
+	     ULONG limit, STRPTR cursor, struct AtpFeed **out_feed);
+
+   FUNCTION
+	GET app.bsky.feed.getAuthorFeed.  When logged in, uses the PDS with
+	Bearer auth; otherwise uses ATPA_APPVIEW without auth.
+
+   INPUTS
+	conn     - AtpConnection.
+	actor    - Handle or DID (required).
+	limit    - Page size; 0 or >50 becomes 20; hard cap 50.
+	cursor   - Previous AtpFeedGetCursor(), or NULL for the first page.
+	out_feed - Receives allocated feed; caller DisposeAtpFeed().
+
+   RESULTS
+	0 on success (*out_feed non-NULL).  Else ERROR_ATP_* (*out_feed NULL).
+
+   SEE ALSO
+	AtpGetTimeline(), DisposeAtpFeed()
+amiatp.library/AtpGetErrorString            amiatp.library/AtpGetErrorString
+
+   NAME
+	AtpGetErrorString -- English string for an ERROR_ATP_* code.  (V1)
+
+   SYNOPSIS
+	s = AtpGetErrorString(code);
+	STRPTR AtpGetErrorString(LONG code);
+
+   FUNCTION
+	Returns a static C string suitable for Printf().  Never NULL for
+	known codes; unknown codes return "Unknown amiatp error".
+
+   RESULTS
+	Static STRPTR — do not free.
+
+   SEE ALSO
+	AtpError(), amiatp.library/errors
+amiatp.library/AtpGetProfile                amiatp.library/AtpGetProfile
+
+   NAME
+	AtpGetProfile -- Fetch an actor profile.  (V1)
+
+   SYNOPSIS
+	err = AtpGetProfile(conn, actor, &profile);
+	LONG AtpGetProfile(struct AtpConnection *conn, STRPTR actor,
+	     struct AtpProfile **out_profile);
+
+   FUNCTION
+	GET app.bsky.actor.getProfile for actor (handle or DID).  Uses PDS
+	when logged in, else AppView.
+
+   INPUTS
+	conn         - AtpConnection.
+	actor        - Handle or DID.
+	out_profile  - Receives profile; caller DisposeAtpProfile().
+
+   RESULTS
+	0 on success, else ERROR_ATP_*.
+
+   SEE ALSO
+	AtpProfileGetHandle(), DisposeAtpProfile()
+amiatp.library/AtpGetRecord                 amiatp.library/AtpGetRecord
+
+   NAME
+	AtpGetRecord -- com.atproto.repo.getRecord.  (V1)
+
+   SYNOPSIS
+	err = AtpGetRecord(conn, rec);
+	LONG AtpGetRecord(struct AtpConnection *conn, struct AtpRecord *rec);
+
+   FUNCTION
+	Fetches a single record.  Set ATPR_COLLECTION, ATPR_RKEY, and optional
+	ATPR_REPO on rec first.  On success, URI/CID/value are stored on rec.
+
+   RESULTS
+	0 on success, else ERROR_ATP_*.
+
+   SEE ALSO
+	SetAtpRecordAttrsA(), AtpRecordGetString()
+amiatp.library/AtpGetTimeline               amiatp.library/AtpGetTimeline
+
+   NAME
+	AtpGetTimeline -- Fetch the logged-in user's home timeline.  (V1)
+
+   SYNOPSIS
+	err = AtpGetTimeline(conn, limit, cursor, &feed);
+	LONG AtpGetTimeline(struct AtpConnection *conn, ULONG limit,
+	     STRPTR cursor, struct AtpFeed **out_feed);
+
+   FUNCTION
+	GET app.bsky.feed.getTimeline with Bearer auth against ATPA_SERVICE
+	(PDS).  Requires login.
+
+	Each feed page parses author handle/displayName/avatar, record text,
+	uri, and up to four embed image thumb URLs.
+
+   INPUTS
+	conn     - Logged-in AtpConnection.
+	limit    - Page size; 0 or >50 becomes 20; hard cap 50.
+	cursor   - Previous page cursor, or NULL.
+	out_feed - Receives feed; caller must DisposeAtpFeed(*out_feed).
+
+   RESULTS
+	0 on success, else ERROR_ATP_* (e.g. ERROR_ATP_NOT_LOGGED_IN,
+	ERROR_ATP_AUTH).
+
+   SEE ALSO
+	AtpFeedGetCursor(), AtpFeedGetPost(), DisposeAtpFeed()
+amiatp.library/AtpListRecords               amiatp.library/AtpListRecords
+
+   NAME
+	AtpListRecords -- com.atproto.repo.listRecords.  (V1)
+
+   SYNOPSIS
+	err = AtpListRecords(conn, collection, limit, cursor, &list);
+	LONG AtpListRecords(struct AtpConnection *conn, STRPTR collection,
+	     ULONG limit, STRPTR cursor, struct AtpRecordList **out_list);
+
+   FUNCTION
+	Lists records in collection for the session repo (or as configured).
+	Requires login.  Cap 50 items per page.
+
+   INPUTS
+	conn       - Logged-in connection.
+	collection - NSID (e.g. app.bsky.feed.post).
+	limit      - Page size (0 → default).
+	cursor     - Pagination cursor or NULL.
+	out_list   - Receives list; caller DisposeAtpRecordList().
+
+   RESULTS
+	0 on success, else ERROR_ATP_*.
+
+   SEE ALSO
+	AtpRecordListGetRecord(), DisposeAtpRecordList()
+amiatp.library/AtpLogin                     amiatp.library/AtpLogin
+
+   NAME
+	AtpLogin -- Create a PDS session (app password).  (V1)
+
+   SYNOPSIS
+	err = AtpLogin(conn, identifier, password);
+	LONG AtpLogin(struct AtpConnection *conn, STRPTR identifier,
+	     STRPTR password);
+
+   FUNCTION
+	POST com.atproto.server.createSession against ATPA_SERVICE.
+	Stores accessJwt, refreshJwt, did, and handle on the connection.
+
+	Use a Bluesky app password, not the account password.
+
+   INPUTS
+	conn       - AtpConnection (configure CA / service first).
+	identifier - Handle or email.
+	password   - App password.
+
+   RESULTS
+	0 on success, else ERROR_ATP_* (often ERROR_ATP_AUTH /
+	ERROR_ATP_HTTP_STATUS on bad credentials).
+
+   SEE ALSO
+	AtpRefreshSession(), AtpLogout(), AtpConnectionGetDid()
+amiatp.library/AtpLogout                    amiatp.library/AtpLogout
+
+   NAME
+	AtpLogout -- Clear session JWTs (local).  (V1)
+
+   SYNOPSIS
+	err = AtpLogout(conn);
+	LONG AtpLogout(struct AtpConnection *conn);
+
+   FUNCTION
+	Frees access/refresh JWTs and clears did/handle on the connection.
+	Does not require a network round-trip.  Safe if already logged out.
+
+   RESULTS
+	0 on success, else ERROR_ATP_INVALID_HANDLE.
+
+   SEE ALSO
+	AtpLogin(), DisposeAtpConnection()
+amiatp.library/AtpProfileGetDescription     amiatp.library/AtpProfileGetDescription
+
+   NAME
+	AtpProfileGetDescription -- Profile bio/description.  (V1)
+
+   SYNOPSIS
+	s = AtpProfileGetDescription(profile);
+	STRPTR AtpProfileGetDescription(struct AtpProfile *profile);
+
+   FUNCTION
+	Returns the description field from getProfile.
+
+   RESULTS
+	Library-owned STRPTR until DisposeAtpProfile(), or NULL.
+amiatp.library/AtpProfileGetDisplayName     amiatp.library/AtpProfileGetDisplayName
+
+   NAME
+	AtpProfileGetDisplayName -- Profile display name.  (V1)
+
+   SYNOPSIS
+	s = AtpProfileGetDisplayName(profile);
+	STRPTR AtpProfileGetDisplayName(struct AtpProfile *profile);
+
+   FUNCTION
+	Returns the displayName field from getProfile.
+
+   RESULTS
+	Library-owned STRPTR until DisposeAtpProfile(), or NULL.
+amiatp.library/AtpProfileGetHandle          amiatp.library/AtpProfileGetHandle
+
+   NAME
+	AtpProfileGetHandle -- Profile handle.  (V1)
+
+   SYNOPSIS
+	s = AtpProfileGetHandle(profile);
+	STRPTR AtpProfileGetHandle(struct AtpProfile *profile);
+
+   FUNCTION
+	Returns the handle field from getProfile.
+
+   RESULTS
+	Library-owned STRPTR until DisposeAtpProfile(), or NULL.
+amiatp.library/AtpPutRecord                 amiatp.library/AtpPutRecord
+
+   NAME
+	AtpPutRecord -- com.atproto.repo.putRecord.  (V1)
+
+   SYNOPSIS
+	err = AtpPutRecord(conn, rec);
+	LONG AtpPutRecord(struct AtpConnection *conn, struct AtpRecord *rec);
+
+   FUNCTION
+	Creates or replaces a record (collection + rkey required).  Requires
+	login.  Updates URI/CID on success.
+
+   RESULTS
+	0 on success, else ERROR_ATP_*.
+
+   SEE ALSO
+	AtpCreateRecord(), AtpGetRecord()
+amiatp.library/AtpRecordGetCid              amiatp.library/AtpRecordGetCid
+
+   NAME
+	AtpRecordGetCid -- CID string of a record.  (V1)
+
+   SYNOPSIS
+	cid = AtpRecordGetCid(rec);
+	STRPTR AtpRecordGetCid(struct AtpRecord *rec);
+
+   FUNCTION
+	Returns the CID from the last successful get/create/put.
+
+   RESULTS
+	Library-owned STRPTR until DisposeAtpRecord(), or NULL.
+amiatp.library/AtpRecordGetString           amiatp.library/AtpRecordGetString
+
+   NAME
+	AtpRecordGetString -- Get a top-level string field from record JSON.  (V1)
+
+   SYNOPSIS
+	s = AtpRecordGetString(rec, key);
+	STRPTR AtpRecordGetString(struct AtpRecord *rec, STRPTR key);
+
+   FUNCTION
+	Looks up key in the stored record value JSON and returns a duplicated
+	string owned by the record object (valid until DisposeAtpRecord).
+
+   RESULTS
+	STRPTR or NULL if missing / not a string.
+
+   NOTES
+	Not a general JSON API — shallow string lookup only.
+amiatp.library/AtpRecordGetUri              amiatp.library/AtpRecordGetUri
+
+   NAME
+	AtpRecordGetUri -- at:// URI of a record.  (V1)
+
+   SYNOPSIS
+	uri = AtpRecordGetUri(rec);
+	STRPTR AtpRecordGetUri(struct AtpRecord *rec);
+
+   FUNCTION
+	Returns the at:// URI from the last successful get/create/put.
+
+   RESULTS
+	Library-owned STRPTR until DisposeAtpRecord(), or NULL.
+amiatp.library/AtpRecordListGetCount        amiatp.library/AtpRecordListGetCount
+
+   NAME
+	AtpRecordListGetCount -- Number of records in a list.  (V1)
+
+   SYNOPSIS
+	n = AtpRecordListGetCount(list);
+	ULONG AtpRecordListGetCount(struct AtpRecordList *list);
+
+   FUNCTION
+	Returns how many records are in the list page.
+
+   RESULTS
+	Count, or 0 if invalid.
+amiatp.library/AtpRecordListGetRecord       amiatp.library/AtpRecordListGetRecord
+
+   NAME
+	AtpRecordListGetRecord -- Nth record in a list.  (V1)
+
+   SYNOPSIS
+	rec = AtpRecordListGetRecord(list, index);
+	struct AtpRecord *AtpRecordListGetRecord(struct AtpRecordList *list,
+	     ULONG index);
+
+   FUNCTION
+	Returns a record owned by the list (do not DisposeAtpRecord() it
+	separately; DisposeAtpRecordList() frees all).
+
+   RESULTS
+	AtpRecord pointer, or NULL if out of range.
+amiatp.library/AtpRefreshSession            amiatp.library/AtpRefreshSession
+
+   NAME
+	AtpRefreshSession -- Refresh access JWT via refreshJwt.  (V1)
+
+   SYNOPSIS
+	err = AtpRefreshSession(conn);
+	LONG AtpRefreshSession(struct AtpConnection *conn);
+
+   FUNCTION
+	POST com.atproto.server.refreshSession using the stored refreshJwt.
+	Updates accessJwt (and related session fields) on success.
+	Authed XRPC helpers may call this once on 401 before failing.
+
+   RESULTS
+	0 on success, else ERROR_ATP_*.
+
+   SEE ALSO
+	AtpLogin(), AtpLogout()
+amiatp.library/AtpResolveHandle             amiatp.library/AtpResolveHandle
+
+   NAME
+	AtpResolveHandle -- Resolve a handle to a DID.  (V1)
+
+   SYNOPSIS
+	err = AtpResolveHandle(conn, handle, did_buf, did_buflen);
+	LONG AtpResolveHandle(struct AtpConnection *conn, STRPTR handle,
+	     STRPTR did_buf, ULONG did_buflen);
+
+   FUNCTION
+	GET com.atproto.identity.resolveHandle.  Writes the DID into did_buf.
+
+   INPUTS
+	conn       - AtpConnection (login optional for public resolve).
+	handle     - e.g. amigazen.bsky.social
+	did_buf    - Output buffer.
+	did_buflen - Size including NUL (recommend >= 128).
+
+   RESULTS
+	0 on success with NUL-terminated DID in did_buf, else ERROR_ATP_*.
+amiatp.library/DisposeAtpConnection         amiatp.library/DisposeAtpConnection
+
+   NAME
+	DisposeAtpConnection -- Free an AtpConnection.  (V1)
+
+   SYNOPSIS
+	DisposeAtpConnection(conn);
+	VOID DisposeAtpConnection(struct AtpConnection *conn);
+
+   FUNCTION
+	Logs out locally if needed, disposes the HttpSession, and frees the
+	connection.  Safe with NULL.
+
+   SEE ALSO
+	NewAtpConnection()
+amiatp.library/DisposeAtpFeed               amiatp.library/DisposeAtpFeed
+
+   NAME
+	DisposeAtpFeed -- Free a feed and all posts.  (V1)
+
+   SYNOPSIS
+	DisposeAtpFeed(feed);
+	VOID DisposeAtpFeed(struct AtpFeed *feed);
+
+   FUNCTION
+	Frees cursor, post strings (text, URIs, image URLs, avatars), and the
+	feed object.  Safe with NULL.  Invalidates all AtpFeedPost pointers
+	from this feed.
+
+   SEE ALSO
+	AtpGetTimeline(), AtpGetAuthorFeed()
+amiatp.library/DisposeAtpProfile            amiatp.library/DisposeAtpProfile
+
+   NAME
+	DisposeAtpProfile -- Free a profile object.  (V1)
+
+   SYNOPSIS
+	DisposeAtpProfile(profile);
+	VOID DisposeAtpProfile(struct AtpProfile *profile);
+
+   FUNCTION
+	Frees profile strings and the object.  Safe with NULL.
+
+   SEE ALSO
+	AtpGetProfile()
+amiatp.library/DisposeAtpRecord             amiatp.library/DisposeAtpRecord
+
+   NAME
+	DisposeAtpRecord -- Free a standalone AtpRecord.  (V1)
+
+   SYNOPSIS
+	DisposeAtpRecord(rec);
+	VOID DisposeAtpRecord(struct AtpRecord *rec);
+
+   FUNCTION
+	Frees a record allocated with NewAtpRecord() or not owned by a list.
+
+   NOTES
+	Do not call on records owned by an AtpRecordList — dispose the list
+	instead.
+
+   SEE ALSO
+	NewAtpRecord(), DisposeAtpRecordList()
+amiatp.library/DisposeAtpRecordList         amiatp.library/DisposeAtpRecordList
+
+   NAME
+	DisposeAtpRecordList -- Free a record list and its records.  (V1)
+
+   SYNOPSIS
+	DisposeAtpRecordList(list);
+	VOID DisposeAtpRecordList(struct AtpRecordList *list);
+
+   FUNCTION
+	Frees the list, cursor, and all contained records.  Safe with NULL.
+
+   SEE ALSO
+	AtpListRecords()
+amiatp.library/NewAtpConnection             amiatp.library/NewAtpConnection
+
+   NAME
+	NewAtpConnection -- Allocate an AT Protocol connection.  (V1)
+
+   SYNOPSIS
+	conn = NewAtpConnection();
+	struct AtpConnection *NewAtpConnection(void);
+
+   FUNCTION
+	Creates an AtpConnection that will own an amihttp HttpSession on first
+	XRPC use.  Inherits Tier 0 defaults (service, AppView, CA, UA).
+	Configure further with SetAtpConnectionAttrsA() before Login.
+
+   RESULTS
+	New connection, or NULL on out of memory.
+
+   SEE ALSO
+	DisposeAtpConnection(), SetAtpConnectionAttrsA(), AtpLogin()
+amiatp.library/NewAtpRecord                 amiatp.library/NewAtpRecord
+
+   NAME
+	NewAtpRecord -- Allocate an empty AtpRecord.  (V1)
+
+   SYNOPSIS
+	rec = NewAtpRecord();
+	struct AtpRecord *NewAtpRecord(void);
+
+   FUNCTION
+	Allocates a record shell for SetAtpRecordAttrsA() / CRUD LVOs.
+
+   RESULTS
+	New record, or NULL on out of memory.
+
+   SEE ALSO
+	DisposeAtpRecord(), SetAtpRecordAttrsA()
+amiatp.library/SetAtpConnectionAttrsA       amiatp.library/SetAtpConnectionAttrsA
+
+   NAME
+	SetAtpConnectionAttrsA -- Configure an AtpConnection.  (V1)
+
+   SYNOPSIS
+	ok = SetAtpConnectionAttrsA(conn, tags);
+	LONG SetAtpConnectionAttrsA(struct AtpConnection *conn,
+	     struct TagItem *tags);
+
+   FUNCTION
+	Applies ATPA_* tags (see amiatp.library/tags).  Strings are copied.
+	Timeouts and CA path are applied to the internal HttpSession when it
+	is created or updated.
+
+	Varargs form: SetAtpConnectionAttrs(conn, tag1, val1, ..., TAG_DONE)
+	via pragma tagcall.
+
+   INPUTS
+	conn - AtpConnection.
+	tags - Tag list or NULL (no-op success).
+
+   RESULTS
+	Non-zero on success, 0 on invalid handle.
+
+   SEE ALSO
+	NewAtpConnection(), amiatp.library/tags
+amiatp.library/SetAtpRecordAttrsA           amiatp.library/SetAtpRecordAttrsA
+
+   NAME
+	SetAtpRecordAttrsA -- Configure an AtpRecord.  (V1)
+
+   SYNOPSIS
+	ok = SetAtpRecordAttrsA(rec, tags);
+	LONG SetAtpRecordAttrsA(struct AtpRecord *rec, struct TagItem *tags);
+
+   FUNCTION
+	Applies ATPR_* tags (collection, rkey, repo, JSON body, text).
+	Varargs form SetAtpRecordAttrs() via pragma tagcall.
+
+   RESULTS
+	Non-zero on success, 0 on invalid handle.
+
+   SEE ALSO
+	NewAtpRecord(), AtpCreateRecord(), amiatp.library/tags

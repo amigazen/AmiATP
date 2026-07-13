@@ -1,0 +1,83 @@
+#ifndef CLIB_AMIATP_PROTOS_H
+#define CLIB_AMIATP_PROTOS_H
+
+/*
+** 'C' prototypes for amiatp.library
+** Generated to match SDK/SFD/amiatp_lib.sfd
+*/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef EXEC_TYPES_H
+#include <exec/types.h>
+#endif
+#ifndef UTILITY_TAGITEM_H
+#include <utility/tagitem.h>
+#endif
+#ifndef LIBRARIES_AMIATP_H
+#include <libraries/amiatp.h>
+#endif
+
+LONG AtpBaseTagList(struct TagItem *tags);
+LONG AtpError(void);
+STRPTR AtpGetErrorString(LONG code);
+
+struct AtpConnection *NewAtpConnection(void);
+void DisposeAtpConnection(struct AtpConnection *conn);
+LONG SetAtpConnectionAttrsA(struct AtpConnection *conn, struct TagItem *tags);
+LONG AtpLogin(struct AtpConnection *conn, STRPTR identifier, STRPTR password);
+LONG AtpRefreshSession(struct AtpConnection *conn);
+LONG AtpLogout(struct AtpConnection *conn);
+STRPTR AtpConnectionGetDid(struct AtpConnection *conn);
+STRPTR AtpConnectionGetHandle(struct AtpConnection *conn);
+LONG AtpConnectionGetLastError(struct AtpConnection *conn);
+
+struct AtpRecord *NewAtpRecord(void);
+void DisposeAtpRecord(struct AtpRecord *rec);
+LONG SetAtpRecordAttrsA(struct AtpRecord *rec, struct TagItem *tags);
+LONG AtpGetRecord(struct AtpConnection *conn, struct AtpRecord *rec);
+LONG AtpCreateRecord(struct AtpConnection *conn, struct AtpRecord *rec);
+LONG AtpPutRecord(struct AtpConnection *conn, struct AtpRecord *rec);
+LONG AtpDeleteRecord(struct AtpConnection *conn, struct AtpRecord *rec);
+LONG AtpListRecords(struct AtpConnection *conn, STRPTR collection, ULONG limit,
+    STRPTR cursor, struct AtpRecordList **out_list);
+void DisposeAtpRecordList(struct AtpRecordList *list);
+ULONG AtpRecordListGetCount(struct AtpRecordList *list);
+struct AtpRecord *AtpRecordListGetRecord(struct AtpRecordList *list, ULONG index);
+STRPTR AtpRecordGetUri(struct AtpRecord *rec);
+STRPTR AtpRecordGetCid(struct AtpRecord *rec);
+STRPTR AtpRecordGetString(struct AtpRecord *rec, STRPTR key);
+
+LONG AtpGetTimeline(struct AtpConnection *conn, ULONG limit, STRPTR cursor,
+    struct AtpFeed **out_feed);
+LONG AtpGetAuthorFeed(struct AtpConnection *conn, STRPTR actor, ULONG limit,
+    STRPTR cursor, struct AtpFeed **out_feed);
+void DisposeAtpFeed(struct AtpFeed *feed);
+ULONG AtpFeedGetCount(struct AtpFeed *feed);
+struct AtpFeedPost *AtpFeedGetPost(struct AtpFeed *feed, ULONG index);
+STRPTR AtpFeedGetCursor(struct AtpFeed *feed);
+STRPTR AtpFeedPostGetAuthorHandle(struct AtpFeedPost *post);
+STRPTR AtpFeedPostGetText(struct AtpFeedPost *post);
+STRPTR AtpFeedPostGetUri(struct AtpFeedPost *post);
+LONG AtpGetProfile(struct AtpConnection *conn, STRPTR actor,
+    struct AtpProfile **out_profile);
+void DisposeAtpProfile(struct AtpProfile *profile);
+STRPTR AtpProfileGetHandle(struct AtpProfile *profile);
+STRPTR AtpProfileGetDisplayName(struct AtpProfile *profile);
+STRPTR AtpProfileGetDescription(struct AtpProfile *profile);
+LONG AtpCreatePost(struct AtpConnection *conn, STRPTR text, STRPTR uri_buf,
+    ULONG uri_buflen);
+LONG AtpResolveHandle(struct AtpConnection *conn, STRPTR handle, STRPTR did_buf,
+    ULONG did_buflen);
+STRPTR AtpFeedPostGetAvatarUrl(struct AtpFeedPost *post);
+ULONG AtpFeedPostGetImageCount(struct AtpFeedPost *post);
+STRPTR AtpFeedPostGetImageUrl(struct AtpFeedPost *post, ULONG index);
+LONG AtpDownloadUrl(struct AtpConnection *conn, STRPTR url, STRPTR path);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* CLIB_AMIATP_PROTOS_H */
