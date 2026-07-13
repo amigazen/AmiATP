@@ -1,4 +1,4 @@
-FROM     sc:lib/c.o AtpTest.o libbases.o
+FROM     sc:lib/c.o AtpTest.o
 LIB      LIB:sc.lib LIB:amiga.lib
 NODEBUG
 TO       AtpTest
