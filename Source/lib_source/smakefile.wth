@@ -1,0 +1,12 @@
+FROM     StartUp.o
+         LibInit.o
+         amiatp_funcs.o
+         atp_util.o
+         atp_json.o
+         atp_xrpc.o
+         atp_connection.o
+         atp_record.o
+         atp_bsky.o
+LIB      LIB:sc.lib LIB:amiga.lib
+NODEBUG
+TO       amiatp.library

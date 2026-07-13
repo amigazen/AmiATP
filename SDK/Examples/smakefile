@@ -1,0 +1,22 @@
+#
+# SDK/Examples/smakefile - AtpTest
+#
+
+CC = sc
+LD = slink
+RM = delete force quiet
+
+all: AtpTest
+
+AtpTest: AtpTest.o libbases.o smakefile.wth
+	$(LD) WITH smakefile.wth WITH LIB:utillib.with
+
+AtpTest.o: AtpTest.c
+	$(CC) AtpTest.c
+
+libbases.o: libbases.c
+	$(CC) libbases.c
+
+clean:
+	-$(RM) \#?.o
+	-$(RM) AtpTest

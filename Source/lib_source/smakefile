@@ -1,0 +1,65 @@
+#
+# Source/lib_source/smakefile - amiatp.library
+#
+
+CC      = sc
+LD      = slink
+RM      = delete force quiet
+
+TARGET  = amiatp.library
+BUILD_H = private/atp_build.h
+
+LIB_OBJS = StartUp.o LibInit.o amiatp_funcs.o atp_util.o atp_json.o \
+           atp_xrpc.o atp_connection.o atp_record.o atp_bsky.o
+
+all: $(TARGET)
+
+rebuild: clean all
+
+$(TARGET): $(LIB_OBJS) smakefile.wth $(BUILD_H)
+	$(LD) WITH smakefile.wth WITH LIB:utillib.with
+
+StartUp.o: StartUp.c $(BUILD_H) amiatp_funcs.h compiler.h
+	$(CC) StartUp.c
+
+LibInit.o: LibInit.c $(BUILD_H) compiler.h
+	$(CC) LibInit.c
+
+amiatp_funcs.o: amiatp_funcs.c amiatp_funcs.h
+	$(CC) amiatp_funcs.c
+
+atp_util.o: atp_util.c
+	$(CC) atp_util.c
+
+atp_json.o: atp_json.c
+	$(CC) atp_json.c
+
+atp_xrpc.o: atp_xrpc.c
+	$(CC) atp_xrpc.c
+
+atp_connection.o: atp_connection.c
+	$(CC) atp_connection.c
+
+atp_record.o: atp_record.c
+	$(CC) atp_record.c
+
+atp_bsky.o: atp_bsky.c
+	$(CC) atp_bsky.c
+
+install:
+	Copy $(TARGET) LIBS:$(TARGET)
+	avail flush
+
+headers:
+	Copy clone /include/libraries/amiatp.h //SDK/Include_H/libraries/amiatp.h
+	Copy clone /include/proto/amiatp.h //SDK/Include_H/proto/amiatp.h
+	Copy clone /include/clib/amiatp_protos.h //SDK/Include_H/clib/amiatp_protos.h
+	Copy clone /include/pragmas/amiatp_pragmas.h //SDK/Include_H/pragmas/amiatp_pragmas.h
+	Copy clone /include/pragma/amiatp_lib.h //SDK/Include_H/pragma/amiatp_lib.h
+	Copy clone /include/inline/amiatp.h //SDK/Include_H/inline/amiatp.h
+	Copy clone /include/inline/amiatp_protos.h //SDK/Include_H/inline/amiatp_protos.h
+
+clean:
+	-$(RM) \#?.o
+	-$(RM) $(TARGET)
+	-$(RM) $(TARGET).info

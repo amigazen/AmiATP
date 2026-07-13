@@ -1,0 +1,69 @@
+==id $VER: amiatp_lib.sfd 1.0 (13.7.2026)
+*"amiatp.library"
+==base _AtpBase
+==basetype struct Library *
+==libname amiatp.library
+==include <exec/types.h>
+==include <libraries/amiatp.h>
+==bias 30
+==public
+==version 1
+*
+* Tier 0 - Per-process defaults (after OpenLibrary only).
+*
+LONG AtpBaseTagList(struct TagItem *tags) (a0)
+LONG AtpError() ()
+STRPTR AtpGetErrorString(LONG code) (d0)
+*
+* Tier 1 - AtpConnection (owns amihttp HttpSession + session JWTs).
+*
+struct AtpConnection *NewAtpConnection() ()
+VOID DisposeAtpConnection(struct AtpConnection *conn) (a0)
+LONG SetAtpConnectionAttrsA(struct AtpConnection *conn, struct TagItem *tags) (a0,a1)
+LONG AtpLogin(struct AtpConnection *conn, STRPTR identifier, STRPTR password) (a0,a1,a2)
+LONG AtpRefreshSession(struct AtpConnection *conn) (a0)
+LONG AtpLogout(struct AtpConnection *conn) (a0)
+STRPTR AtpConnectionGetDid(struct AtpConnection *conn) (a0)
+STRPTR AtpConnectionGetHandle(struct AtpConnection *conn) (a0)
+LONG AtpConnectionGetLastError(struct AtpConnection *conn) (a0)
+*
+* Tier 2 - Generic repo record CRUD (com.atproto.repo.*).
+*
+struct AtpRecord *NewAtpRecord() ()
+VOID DisposeAtpRecord(struct AtpRecord *rec) (a0)
+LONG SetAtpRecordAttrsA(struct AtpRecord *rec, struct TagItem *tags) (a0,a1)
+LONG AtpGetRecord(struct AtpConnection *conn, struct AtpRecord *rec) (a0,a1)
+LONG AtpCreateRecord(struct AtpConnection *conn, struct AtpRecord *rec) (a0,a1)
+LONG AtpPutRecord(struct AtpConnection *conn, struct AtpRecord *rec) (a0,a1)
+LONG AtpDeleteRecord(struct AtpConnection *conn, struct AtpRecord *rec) (a0,a1)
+LONG AtpListRecords(struct AtpConnection *conn, STRPTR collection, ULONG limit, STRPTR cursor, struct AtpRecordList **out_list) (a0,a1,d0,a2,a3)
+VOID DisposeAtpRecordList(struct AtpRecordList *list) (a0)
+ULONG AtpRecordListGetCount(struct AtpRecordList *list) (a0)
+struct AtpRecord *AtpRecordListGetRecord(struct AtpRecordList *list, ULONG index) (a0,d0)
+STRPTR AtpRecordGetUri(struct AtpRecord *rec) (a0)
+STRPTR AtpRecordGetCid(struct AtpRecord *rec) (a0)
+STRPTR AtpRecordGetString(struct AtpRecord *rec, STRPTR key) (a0,a1)
+*
+* Tier 3 - Bluesky schema helpers (app.bsky.*).
+*
+LONG AtpGetTimeline(struct AtpConnection *conn, ULONG limit, STRPTR cursor, struct AtpFeed **out_feed) (a0,d0,a1,a2)
+LONG AtpGetAuthorFeed(struct AtpConnection *conn, STRPTR actor, ULONG limit, STRPTR cursor, struct AtpFeed **out_feed) (a0,a1,d0,a2,a3)
+VOID DisposeAtpFeed(struct AtpFeed *feed) (a0)
+ULONG AtpFeedGetCount(struct AtpFeed *feed) (a0)
+struct AtpFeedPost *AtpFeedGetPost(struct AtpFeed *feed, ULONG index) (a0,d0)
+STRPTR AtpFeedGetCursor(struct AtpFeed *feed) (a0)
+STRPTR AtpFeedPostGetAuthorHandle(struct AtpFeedPost *post) (a0)
+STRPTR AtpFeedPostGetText(struct AtpFeedPost *post) (a0)
+STRPTR AtpFeedPostGetUri(struct AtpFeedPost *post) (a0)
+LONG AtpGetProfile(struct AtpConnection *conn, STRPTR actor, struct AtpProfile **out_profile) (a0,a1,a2)
+VOID DisposeAtpProfile(struct AtpProfile *profile) (a0)
+STRPTR AtpProfileGetHandle(struct AtpProfile *profile) (a0)
+STRPTR AtpProfileGetDisplayName(struct AtpProfile *profile) (a0)
+STRPTR AtpProfileGetDescription(struct AtpProfile *profile) (a0)
+LONG AtpCreatePost(struct AtpConnection *conn, STRPTR text, STRPTR uri_buf, ULONG uri_buflen) (a0,a1,a2,d0)
+LONG AtpResolveHandle(struct AtpConnection *conn, STRPTR handle, STRPTR did_buf, ULONG did_buflen) (a0,a1,a2,d0)
+STRPTR AtpFeedPostGetAvatarUrl(struct AtpFeedPost *post) (a0)
+ULONG AtpFeedPostGetImageCount(struct AtpFeedPost *post) (a0)
+STRPTR AtpFeedPostGetImageUrl(struct AtpFeedPost *post, ULONG index) (a0,d0)
+LONG AtpDownloadUrl(struct AtpConnection *conn, STRPTR url, STRPTR path) (a0,a1,a2)
+==end
