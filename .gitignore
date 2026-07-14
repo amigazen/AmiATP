@@ -1,0 +1,7 @@
+# Object files and binaries
+*.o
+*.info
+.DS_Store
+*.uaem
+*.map
+output.txt
