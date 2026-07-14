@@ -3,7 +3,8 @@ TABLE OF CONTENTS
 amiatp.library/background
 amiatp.library/errors
 amiatp.library/tags
-amiatp.library/AtpBaseTagList
+amiatp.library/AtpBaseTagsA
+amiatp.library/AtpBaseTags
 amiatp.library/AtpConnectionGetDid
 amiatp.library/AtpConnectionGetHandle
 amiatp.library/AtpConnectionGetLastError
@@ -64,7 +65,7 @@ amiatp.library/SetAtpRecordAttrsA
 
    API TIERS
 
-   Tier 0 — AtpBaseTagList / AtpError / AtpGetErrorString
+   Tier 0 — AtpBaseTagsA / AtpError / AtpGetErrorString
      Per-process defaults (CA path, service URLs, break mask).
 
    Tier 1 — AtpConnection
@@ -154,7 +155,7 @@ amiatp.library/SetAtpRecordAttrsA
    no separate public GetStatusCode on AtpConnection.
 amiatp.library/tags                         amiatp.library/tags
 
-   TIER 0 — AtpBaseTagList (after OpenLibrary)
+   TIER 0 — AtpBaseTagsA (after OpenLibrary)
 
 	ATBT_BREAKMASK          (ULONG) Exec break signal mask for blocking
 	                        XRPC (passed through to amihttp).
@@ -181,14 +182,14 @@ amiatp.library/SetAtpRecordAttrsA
 	ATPR_REPO               (STRPTR) DID; default is session DID
 	ATPR_JSON_BODY          (STRPTR) Full record JSON escape hatch
 	ATPR_TEXT               (STRPTR) Convenience text for simple posts
-amiatp.library/AtpBaseTagList               amiatp.library/AtpBaseTagList
+amiatp.library/AtpBaseTagsA               amiatp.library/AtpBaseTagsA
 
    NAME
-	AtpBaseTagList -- Set process-wide amiatp defaults.  (V1)
+	AtpBaseTagsA -- Set process-wide amiatp defaults.  (V1)
 
    SYNOPSIS
-	ok = AtpBaseTagList(tags);
-	LONG AtpBaseTagList(struct TagItem *tags);
+	ok = AtpBaseTagsA(tags);
+	LONG AtpBaseTagsA(struct TagItem *tags);
 
    FUNCTION
 	Applies Tier 0 tags to the library base after OpenLibrary().  Strings
@@ -202,7 +203,22 @@ amiatp.library/SetAtpRecordAttrsA
 	Non-zero (TRUE) on success.  0 if the library base is invalid.
 
    SEE ALSO
-	amiatp.library/tags, AtpError()
+	amiatp.library/tags, AtpError(), AtpBaseTags()
+amiatp.library/AtpBaseTags                 amiatp.library/AtpBaseTags
+
+   NAME
+	AtpBaseTags -- Variadic wrapper for AtpBaseTagsA.  (V1)
+
+   SYNOPSIS
+	ok = AtpBaseTags(tag1, val1, ..., TAG_DONE);
+	LONG AtpBaseTags(...);
+
+   FUNCTION
+	Convenience wrapper around AtpBaseTagsA().  Implemented as a tagcall
+	macro (SAS/C) or inline stub (GCC/VBCC), not a separate LVO.
+
+   SEE ALSO
+	AtpBaseTagsA(), amiatp.library/tags
 amiatp.library/AtpConnectionGetDid          amiatp.library/AtpConnectionGetDid
 
    NAME

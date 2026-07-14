@@ -48,7 +48,7 @@ atp_error_string(LONG code)
 }
 
 LONG __ASM__ __SAVE_DS__
-AtpBaseTagList(__REG__(a0, struct TagItem *tags),
+AtpBaseTagsA(__REG__(a0, struct TagItem *tags),
     __REG__(a6, struct AmiAtpBase *libbase))
 {
     struct TagItem *tstate;

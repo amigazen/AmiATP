@@ -57,7 +57,7 @@ struct AtpProfile;
 #define ERROR_ATP_XRPC                  8912
 
 /****************************************************************************/
-/* AtpBaseTagList tags (Tier 0)                                             */
+/* AtpBaseTagsA tags (Tier 0)                                             */
 /****************************************************************************/
 
 #define ATBT_BREAKMASK              (TAG_USER + 0x01)
@@ -88,5 +88,10 @@ struct AtpProfile;
 #define ATPR_REPO                   (TAG_USER + 0x202)  /* DID; default session DID */
 #define ATPR_JSON_BODY              (TAG_USER + 0x203)  /* escape hatch: full record JSON */
 #define ATPR_TEXT                   (TAG_USER + 0x204)  /* convenience for post text */
+
+/****************************************************************************/
+/* AtpBaseTags / SetAtpConnectionAttrs / SetAtpRecordAttrs are tagcall or     */
+/* inline wrappers (see ==varargs in SDK/SFD/amiatp_lib.sfd), not LVOs.     */
+/****************************************************************************/
 
 #endif /* LIBRARIES_AMIATP_H */

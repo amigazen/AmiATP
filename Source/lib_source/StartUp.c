@@ -65,7 +65,7 @@ APTR FuncTab[] = {
     (APTR)CloseLib,
     (APTR)ExpungeLib,
     (APTR)ExtFuncLib,
-    (APTR)AtpBaseTagList,
+    (APTR)AtpBaseTagsA,
     (APTR)AtpError,
     (APTR)AtpGetErrorString,
     (APTR)NewAtpConnection,

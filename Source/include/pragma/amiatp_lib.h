@@ -17,7 +17,7 @@
 
 /* Tier 0 - Per-process defaults (after OpenLibrary only). */
 
-#pragma amicall(AtpBase, 0x1E, AtpBaseTagList(a0))
+#pragma amicall(AtpBase, 0x1E, AtpBaseTagsA(a0))
 #pragma amicall(AtpBase, 0x24, AtpError())
 #pragma amicall(AtpBase, 0x2A, AtpGetErrorString(d0))
 
@@ -72,5 +72,11 @@
 #pragma amicall(AtpBase, 0x120, AtpFeedPostGetImageCount(a0))
 #pragma amicall(AtpBase, 0x126, AtpFeedPostGetImageUrl(a0,d0))
 #pragma amicall(AtpBase, 0x12C, AtpDownloadUrl(a0,a1,a2))
+
+#ifdef __STORM__
+#pragma tagcall(AtpBase, 0x1E, AtpBaseTags(a0))
+#pragma tagcall(AtpBase, 0x3C, SetAtpConnectionAttrs(a0,a1))
+#pragma tagcall(AtpBase, 0x72, SetAtpRecordAttrs(a0,a1))
+#endif /* __STORM__ */
 
 #endif /* PRAGMA_AMIATP_LIB_H */

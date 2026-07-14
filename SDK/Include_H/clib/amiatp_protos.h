@@ -24,7 +24,8 @@ extern "C" {
 
 /* Tier 0 - Per-process defaults (after OpenLibrary only).*/
 
-LONG AtpBaseTagList(struct TagItem *tags);
+LONG AtpBaseTagsA(struct TagItem *tags);
+LONG AtpBaseTags(...);
 LONG AtpError(void);
 STRPTR AtpGetErrorString(LONG code);
 
@@ -33,6 +34,7 @@ STRPTR AtpGetErrorString(LONG code);
 struct AtpConnection *NewAtpConnection(void);
 void DisposeAtpConnection(struct AtpConnection *conn);
 LONG SetAtpConnectionAttrsA(struct AtpConnection *conn, struct TagItem *tags);
+LONG SetAtpConnectionAttrs(struct AtpConnection *conn, ...);
 LONG AtpLogin(struct AtpConnection *conn, STRPTR identifier, STRPTR password);
 LONG AtpRefreshSession(struct AtpConnection *conn);
 LONG AtpLogout(struct AtpConnection *conn);
@@ -45,6 +47,7 @@ LONG AtpConnectionGetLastError(struct AtpConnection *conn);
 struct AtpRecord *NewAtpRecord(void);
 void DisposeAtpRecord(struct AtpRecord *rec);
 LONG SetAtpRecordAttrsA(struct AtpRecord *rec, struct TagItem *tags);
+LONG SetAtpRecordAttrs(struct AtpRecord *rec, ...);
 LONG AtpGetRecord(struct AtpConnection *conn, struct AtpRecord *rec);
 LONG AtpCreateRecord(struct AtpConnection *conn, struct AtpRecord *rec);
 LONG AtpPutRecord(struct AtpConnection *conn, struct AtpRecord *rec);

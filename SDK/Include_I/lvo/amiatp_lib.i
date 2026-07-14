@@ -12,7 +12,7 @@
 **"amiatp.library"
 **--- functions in V1 or higher ---
 ** Tier 0 - Per-process defaults (after OpenLibrary only).
-_LVOAtpBaseTagList equ -30
+_LVOAtpBaseTagsA equ -30
 _LVOAtpError equ -36
 _LVOAtpGetErrorString equ -42
 ** Tier 1 - AtpConnection (owns amihttp HttpSession + session JWTs).

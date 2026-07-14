@@ -17,7 +17,10 @@
 
 /* Tier 0 - Per-process defaults (after OpenLibrary only). */
 
-#pragma libcall AtpBase AtpBaseTagList 1E 801
+#pragma libcall AtpBase AtpBaseTagsA 1E 801
+#if defined(__SASC_60)
+#pragma tagcall AtpBase AtpBaseTags 1E 801
+#endif /* __SASC_60 */
 #pragma libcall AtpBase AtpError 24 00
 #pragma libcall AtpBase AtpGetErrorString 2A 001
 
@@ -26,6 +29,9 @@
 #pragma libcall AtpBase NewAtpConnection 30 00
 #pragma libcall AtpBase DisposeAtpConnection 36 801
 #pragma libcall AtpBase SetAtpConnectionAttrsA 3C 9802
+#if defined(__SASC_60)
+#pragma tagcall AtpBase SetAtpConnectionAttrs 3C 9802
+#endif /* __SASC_60 */
 #pragma libcall AtpBase AtpLogin 42 A9803
 #pragma libcall AtpBase AtpRefreshSession 48 801
 #pragma libcall AtpBase AtpLogout 4E 801
@@ -38,6 +44,9 @@
 #pragma libcall AtpBase NewAtpRecord 66 00
 #pragma libcall AtpBase DisposeAtpRecord 6C 801
 #pragma libcall AtpBase SetAtpRecordAttrsA 72 9802
+#if defined(__SASC_60)
+#pragma tagcall AtpBase SetAtpRecordAttrs 72 9802
+#endif /* __SASC_60 */
 #pragma libcall AtpBase AtpGetRecord 78 9802
 #pragma libcall AtpBase AtpCreateRecord 7E 9802
 #pragma libcall AtpBase AtpPutRecord 84 9802

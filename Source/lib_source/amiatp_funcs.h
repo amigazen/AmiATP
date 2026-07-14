@@ -14,7 +14,7 @@
 
 struct AmiAtpBase;
 
-LONG __ASM__ __SAVE_DS__ AtpBaseTagList(__REG__(a0, struct TagItem *tags),
+LONG __ASM__ __SAVE_DS__ AtpBaseTagsA(__REG__(a0, struct TagItem *tags),
     __REG__(a6, struct AmiAtpBase *libbase));
 LONG __ASM__ __SAVE_DS__ AtpError(__REG__(a6, struct AmiAtpBase *libbase));
 STRPTR __ASM__ __SAVE_DS__ AtpGetErrorString(__REG__(d0, LONG code));

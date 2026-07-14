@@ -1,4 +1,4 @@
-==id $VER: amiatp_lib.sfd 1.0 (13.7.2026)
+==id $VER: amiatp_lib.sfd 1.2 (14.7.2026)
 *"amiatp.library"
 ==base _AtpBase
 ==basetype struct Library *
@@ -11,7 +11,9 @@
 *
 * Tier 0 - Per-process defaults (after OpenLibrary only).
 *
-LONG AtpBaseTagList(struct TagItem *tags) (a0)
+LONG AtpBaseTagsA(struct TagItem *tags) (a0)
+==varargs
+LONG AtpBaseTags(...) (a0)
 LONG AtpError() ()
 STRPTR AtpGetErrorString(LONG code) (d0)
 *
@@ -20,6 +22,8 @@ STRPTR AtpGetErrorString(LONG code) (d0)
 struct AtpConnection *NewAtpConnection() ()
 VOID DisposeAtpConnection(struct AtpConnection *conn) (a0)
 LONG SetAtpConnectionAttrsA(struct AtpConnection *conn, struct TagItem *tags) (a0,a1)
+==varargs
+LONG SetAtpConnectionAttrs(struct AtpConnection *conn, ...) (a0,a1)
 LONG AtpLogin(struct AtpConnection *conn, STRPTR identifier, STRPTR password) (a0,a1,a2)
 LONG AtpRefreshSession(struct AtpConnection *conn) (a0)
 LONG AtpLogout(struct AtpConnection *conn) (a0)
@@ -32,6 +36,8 @@ LONG AtpConnectionGetLastError(struct AtpConnection *conn) (a0)
 struct AtpRecord *NewAtpRecord() ()
 VOID DisposeAtpRecord(struct AtpRecord *rec) (a0)
 LONG SetAtpRecordAttrsA(struct AtpRecord *rec, struct TagItem *tags) (a0,a1)
+==varargs
+LONG SetAtpRecordAttrs(struct AtpRecord *rec, ...) (a0,a1)
 LONG AtpGetRecord(struct AtpConnection *conn, struct AtpRecord *rec) (a0,a1)
 LONG AtpCreateRecord(struct AtpConnection *conn, struct AtpRecord *rec) (a0,a1)
 LONG AtpPutRecord(struct AtpConnection *conn, struct AtpRecord *rec) (a0,a1)
