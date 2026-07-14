@@ -25,7 +25,7 @@ extern "C" {
 /* Tier 0 - Per-process defaults (after OpenLibrary only).*/
 
 LONG AtpBaseTagsA(struct TagItem *tags);
-LONG AtpBaseTags(...);
+LONG AtpBaseTags(Tag firstTag, ...);
 LONG AtpError(void);
 STRPTR AtpGetErrorString(LONG code);
 

@@ -18,6 +18,9 @@
 /* Tier 0 - Per-process defaults (after OpenLibrary only). */
 
 #pragma amicall(AtpBase, 0x1E, AtpBaseTagsA(a0))
+#if defined(__STORM__)
+#pragma tagcall(AtpBase, 0x1E, AtpBaseTags(a0))
+#endif /* __STORM__ */
 #pragma amicall(AtpBase, 0x24, AtpError())
 #pragma amicall(AtpBase, 0x2A, AtpGetErrorString(d0))
 
@@ -26,6 +29,9 @@
 #pragma amicall(AtpBase, 0x30, NewAtpConnection())
 #pragma amicall(AtpBase, 0x36, DisposeAtpConnection(a0))
 #pragma amicall(AtpBase, 0x3C, SetAtpConnectionAttrsA(a0,a1))
+#if defined(__STORM__)
+#pragma tagcall(AtpBase, 0x3C, SetAtpConnectionAttrs(a0,a1))
+#endif /* __STORM__ */
 #pragma amicall(AtpBase, 0x42, AtpLogin(a0,a1,a2))
 #pragma amicall(AtpBase, 0x48, AtpRefreshSession(a0))
 #pragma amicall(AtpBase, 0x4E, AtpLogout(a0))
@@ -38,6 +44,9 @@
 #pragma amicall(AtpBase, 0x66, NewAtpRecord())
 #pragma amicall(AtpBase, 0x6C, DisposeAtpRecord(a0))
 #pragma amicall(AtpBase, 0x72, SetAtpRecordAttrsA(a0,a1))
+#if defined(__STORM__)
+#pragma tagcall(AtpBase, 0x72, SetAtpRecordAttrs(a0,a1))
+#endif /* __STORM__ */
 #pragma amicall(AtpBase, 0x78, AtpGetRecord(a0,a1))
 #pragma amicall(AtpBase, 0x7E, AtpCreateRecord(a0,a1))
 #pragma amicall(AtpBase, 0x84, AtpPutRecord(a0,a1))
@@ -72,11 +81,5 @@
 #pragma amicall(AtpBase, 0x120, AtpFeedPostGetImageCount(a0))
 #pragma amicall(AtpBase, 0x126, AtpFeedPostGetImageUrl(a0,d0))
 #pragma amicall(AtpBase, 0x12C, AtpDownloadUrl(a0,a1,a2))
-
-#ifdef __STORM__
-#pragma tagcall(AtpBase, 0x1E, AtpBaseTags(a0))
-#pragma tagcall(AtpBase, 0x3C, SetAtpConnectionAttrs(a0,a1))
-#pragma tagcall(AtpBase, 0x72, SetAtpRecordAttrs(a0,a1))
-#endif /* __STORM__ */
 
 #endif /* PRAGMA_AMIATP_LIB_H */

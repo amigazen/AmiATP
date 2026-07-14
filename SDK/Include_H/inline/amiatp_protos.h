@@ -16,8 +16,10 @@
 LONG __AtpBaseTagsA(__reg("a6") void *, __reg("a0") struct TagItem *tags)="\tjsr\t-30(a6)";
 #define AtpBaseTagsA(tags) __AtpBaseTagsA(AtpBase, (tags))
 
+#if !defined(NO_INLINE_STDARG) && (__STDC__ == 1L) && (__STDC_VERSION__ >= 199901L)
 LONG __AtpBaseTags(__reg("a6") void *, ...)="\tmove.l\ta0,-(a7)\n\tlea\t4(a7),a0\n\tjsr\t-30(a6)\n\tmovea.l\t(a7)+,a0";
 #define AtpBaseTags(...) __AtpBaseTags(AtpBase, __VA_ARGS__)
+#endif
 
 LONG __AtpError(__reg("a6") void *)="\tjsr\t-36(a6)";
 #define AtpError() __AtpError(AtpBase)
@@ -37,8 +39,10 @@ void __DisposeAtpConnection(__reg("a6") void *, __reg("a0") struct AtpConnection
 LONG __SetAtpConnectionAttrsA(__reg("a6") void *, __reg("a0") struct AtpConnection *conn, __reg("a1") struct TagItem *tags)="\tjsr\t-60(a6)";
 #define SetAtpConnectionAttrsA(conn, tags) __SetAtpConnectionAttrsA(AtpBase, (conn), (tags))
 
+#if !defined(NO_INLINE_STDARG) && (__STDC__ == 1L) && (__STDC_VERSION__ >= 199901L)
 LONG __SetAtpConnectionAttrs(__reg("a6") void *, __reg("a0") struct AtpConnection *conn, ...)="\tmove.l\ta1,-(a7)\n\tlea\t4(a7),a1\n\tjsr\t-60(a6)\n\tmovea.l\t(a7)+,a1";
-#define SetAtpConnectionAttrs(conn, ...) __SetAtpConnectionAttrs(AtpBase, (conn), __VA_ARGS__)
+#define SetAtpConnectionAttrs(...) __SetAtpConnectionAttrs(AtpBase, __VA_ARGS__)
+#endif
 
 LONG __AtpLogin(__reg("a6") void *, __reg("a0") struct AtpConnection *conn, __reg("a1") STRPTR identifier, __reg("a2") STRPTR password)="\tjsr\t-66(a6)";
 #define AtpLogin(conn, identifier, password) __AtpLogin(AtpBase, (conn), (identifier), (password))
@@ -70,8 +74,10 @@ void __DisposeAtpRecord(__reg("a6") void *, __reg("a0") struct AtpRecord *rec)="
 LONG __SetAtpRecordAttrsA(__reg("a6") void *, __reg("a0") struct AtpRecord *rec, __reg("a1") struct TagItem *tags)="\tjsr\t-114(a6)";
 #define SetAtpRecordAttrsA(rec, tags) __SetAtpRecordAttrsA(AtpBase, (rec), (tags))
 
+#if !defined(NO_INLINE_STDARG) && (__STDC__ == 1L) && (__STDC_VERSION__ >= 199901L)
 LONG __SetAtpRecordAttrs(__reg("a6") void *, __reg("a0") struct AtpRecord *rec, ...)="\tmove.l\ta1,-(a7)\n\tlea\t4(a7),a1\n\tjsr\t-114(a6)\n\tmovea.l\t(a7)+,a1";
-#define SetAtpRecordAttrs(rec, ...) __SetAtpRecordAttrs(AtpBase, (rec), __VA_ARGS__)
+#define SetAtpRecordAttrs(...) __SetAtpRecordAttrs(AtpBase, __VA_ARGS__)
+#endif
 
 LONG __AtpGetRecord(__reg("a6") void *, __reg("a0") struct AtpConnection *conn, __reg("a1") struct AtpRecord *rec)="\tjsr\t-120(a6)";
 #define AtpGetRecord(conn, rec) __AtpGetRecord(AtpBase, (conn), (rec))
