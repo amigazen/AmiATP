@@ -81,5 +81,9 @@
 #pragma amicall(AtpBase, 0x120, AtpFeedPostGetImageCount(a0))
 #pragma amicall(AtpBase, 0x126, AtpFeedPostGetImageUrl(a0,d0))
 #pragma amicall(AtpBase, 0x12C, AtpDownloadUrl(a0,a1,a2))
+#pragma amicall(AtpBase, 0x132, AtpFeedPostGetExtUri(a0))
+#pragma amicall(AtpBase, 0x138, AtpFeedPostGetExtTitle(a0))
+#pragma amicall(AtpBase, 0x13E, AtpFeedPostGetExtDescription(a0))
+#pragma amicall(AtpBase, 0x144, AtpFeedPostGetExtThumb(a0))
 
 #endif /* PRAGMA_AMIATP_LIB_H */

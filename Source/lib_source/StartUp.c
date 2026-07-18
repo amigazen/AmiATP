@@ -111,6 +111,10 @@ APTR FuncTab[] = {
     (APTR)AtpFeedPostGetImageCount,
     (APTR)AtpFeedPostGetImageUrl,
     (APTR)AtpDownloadUrl,
+    (APTR)AtpFeedPostGetExtUri,
+    (APTR)AtpFeedPostGetExtTitle,
+    (APTR)AtpFeedPostGetExtDescription,
+    (APTR)AtpFeedPostGetExtThumb,
     (APTR)((LONG)-1)
 };
 

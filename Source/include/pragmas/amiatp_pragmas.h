@@ -81,5 +81,9 @@
 #pragma libcall AtpBase AtpFeedPostGetImageCount 120 801
 #pragma libcall AtpBase AtpFeedPostGetImageUrl 126 0802
 #pragma libcall AtpBase AtpDownloadUrl 12C A9803
+#pragma libcall AtpBase AtpFeedPostGetExtUri 132 801
+#pragma libcall AtpBase AtpFeedPostGetExtTitle 138 801
+#pragma libcall AtpBase AtpFeedPostGetExtDescription 13E 801
+#pragma libcall AtpBase AtpFeedPostGetExtThumb 144 801
 
 #endif /* PRAGMAS_AMIATP_PRAGMAS_H */

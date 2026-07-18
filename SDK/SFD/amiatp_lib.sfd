@@ -72,4 +72,8 @@ STRPTR AtpFeedPostGetAvatarUrl(struct AtpFeedPost *post) (a0)
 ULONG AtpFeedPostGetImageCount(struct AtpFeedPost *post) (a0)
 STRPTR AtpFeedPostGetImageUrl(struct AtpFeedPost *post, ULONG index) (a0,d0)
 LONG AtpDownloadUrl(struct AtpConnection *conn, STRPTR url, STRPTR path) (a0,a1,a2)
+STRPTR AtpFeedPostGetExtUri(struct AtpFeedPost *post) (a0)
+STRPTR AtpFeedPostGetExtTitle(struct AtpFeedPost *post) (a0)
+STRPTR AtpFeedPostGetExtDescription(struct AtpFeedPost *post) (a0)
+STRPTR AtpFeedPostGetExtThumb(struct AtpFeedPost *post) (a0)
 ==end

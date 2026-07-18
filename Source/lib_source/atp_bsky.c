@@ -24,6 +24,10 @@ atp_feed_post_clear(struct AtpFeedPost *post)
     atp_free(post->afp_Uri);
     atp_free(post->afp_CreatedAt);
     atp_free(post->afp_AvatarUrl);
+    atp_free(post->afp_ExtUri);
+    atp_free(post->afp_ExtTitle);
+    atp_free(post->afp_ExtDescription);
+    atp_free(post->afp_ExtThumb);
     for (i = 0; i < ATP_MAX_FEED_IMAGES; i++) {
         atp_free(post->afp_ImageUrls[i]);
         post->afp_ImageUrls[i] = NULL;
@@ -34,6 +38,10 @@ atp_feed_post_clear(struct AtpFeedPost *post)
     post->afp_Uri = NULL;
     post->afp_CreatedAt = NULL;
     post->afp_AvatarUrl = NULL;
+    post->afp_ExtUri = NULL;
+    post->afp_ExtTitle = NULL;
+    post->afp_ExtDescription = NULL;
+    post->afp_ExtThumb = NULL;
     post->afp_ImageCount = 0;
 }
 
@@ -101,7 +109,7 @@ atp_parse_post_media(STRPTR post_obj, struct AtpFeedPost *post)
     if (post->afp_ImageCount > 0) {
         return;
     }
-    /* app.bsky.embed.external#view → external.thumb */
+    /* app.bsky.embed.external#view → OpenGraph card fields + thumb */
     {
         STRPTR ext;
         STRPTR thumb;
@@ -110,16 +118,19 @@ atp_parse_post_media(STRPTR post_obj, struct AtpFeedPost *post)
         if (ext != NULL) {
             ext = atp_json_skip(ext);
             if (*ext == '{') {
+                post->afp_ExtUri = atp_json_object_dup_string(ext, "uri");
+                post->afp_ExtTitle = atp_json_object_dup_string(ext, "title");
+                post->afp_ExtDescription =
+                    atp_json_object_dup_string(ext, "description");
                 thumb = atp_json_object_dup_string(ext, "thumb");
-                if (thumb != NULL) {
-                    post->afp_ImageUrls[post->afp_ImageCount++] = thumb;
-                    return;
-                }
+                if (thumb != NULL)
+                    post->afp_ExtThumb = thumb;
+                return;
             }
         }
         thumb = atp_json_object_dup_string(emb, "thumb");
         if (thumb != NULL) {
-            post->afp_ImageUrls[post->afp_ImageCount++] = thumb;
+            post->afp_ExtThumb = thumb;
         }
     }
 }

@@ -438,6 +438,42 @@ AtpFeedPostGetImageUrl(__REG__(a0, struct AtpFeedPost *post),
     return post->afp_ImageUrls[index];
 }
 
+STRPTR __ASM__ __SAVE_DS__
+AtpFeedPostGetExtUri(__REG__(a0, struct AtpFeedPost *post))
+{
+    if (post == NULL) {
+        return NULL;
+    }
+    return post->afp_ExtUri;
+}
+
+STRPTR __ASM__ __SAVE_DS__
+AtpFeedPostGetExtTitle(__REG__(a0, struct AtpFeedPost *post))
+{
+    if (post == NULL) {
+        return NULL;
+    }
+    return post->afp_ExtTitle;
+}
+
+STRPTR __ASM__ __SAVE_DS__
+AtpFeedPostGetExtDescription(__REG__(a0, struct AtpFeedPost *post))
+{
+    if (post == NULL) {
+        return NULL;
+    }
+    return post->afp_ExtDescription;
+}
+
+STRPTR __ASM__ __SAVE_DS__
+AtpFeedPostGetExtThumb(__REG__(a0, struct AtpFeedPost *post))
+{
+    if (post == NULL) {
+        return NULL;
+    }
+    return post->afp_ExtThumb;
+}
+
 LONG __ASM__ __SAVE_DS__
 AtpGetProfile(__REG__(a0, struct AtpConnection *conn),
     __REG__(a1, STRPTR actor), __REG__(a2, struct AtpProfile **out_profile),

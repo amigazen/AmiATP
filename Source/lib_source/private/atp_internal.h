@@ -88,6 +88,11 @@ struct AtpFeedPost
     STRPTR                  afp_AvatarUrl;
     ULONG                   afp_ImageCount;
     STRPTR                  afp_ImageUrls[ATP_MAX_FEED_IMAGES];
+    /* app.bsky.embed.external#view — OpenGraph-style link card */
+    STRPTR                  afp_ExtUri;
+    STRPTR                  afp_ExtTitle;
+    STRPTR                  afp_ExtDescription;
+    STRPTR                  afp_ExtThumb;
 };
 
 struct AtpFeed

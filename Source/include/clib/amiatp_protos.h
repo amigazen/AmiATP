@@ -82,6 +82,10 @@ STRPTR AtpFeedPostGetAvatarUrl(struct AtpFeedPost *post);
 ULONG AtpFeedPostGetImageCount(struct AtpFeedPost *post);
 STRPTR AtpFeedPostGetImageUrl(struct AtpFeedPost *post, ULONG index);
 LONG AtpDownloadUrl(struct AtpConnection *conn, STRPTR url, STRPTR path);
+STRPTR AtpFeedPostGetExtUri(struct AtpFeedPost *post);
+STRPTR AtpFeedPostGetExtTitle(struct AtpFeedPost *post);
+STRPTR AtpFeedPostGetExtDescription(struct AtpFeedPost *post);
+STRPTR AtpFeedPostGetExtThumb(struct AtpFeedPost *post);
 
 #ifdef __cplusplus
 }

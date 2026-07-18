@@ -95,6 +95,14 @@ ULONG __ASM__ __SAVE_DS__ AtpFeedPostGetImageCount(
     __REG__(a0, struct AtpFeedPost *post));
 STRPTR __ASM__ __SAVE_DS__ AtpFeedPostGetImageUrl(
     __REG__(a0, struct AtpFeedPost *post), __REG__(d0, ULONG index));
+STRPTR __ASM__ __SAVE_DS__ AtpFeedPostGetExtUri(
+    __REG__(a0, struct AtpFeedPost *post));
+STRPTR __ASM__ __SAVE_DS__ AtpFeedPostGetExtTitle(
+    __REG__(a0, struct AtpFeedPost *post));
+STRPTR __ASM__ __SAVE_DS__ AtpFeedPostGetExtDescription(
+    __REG__(a0, struct AtpFeedPost *post));
+STRPTR __ASM__ __SAVE_DS__ AtpFeedPostGetExtThumb(
+    __REG__(a0, struct AtpFeedPost *post));
 LONG __ASM__ __SAVE_DS__ AtpGetProfile(__REG__(a0, struct AtpConnection *conn),
     __REG__(a1, STRPTR actor), __REG__(a2, struct AtpProfile **out_profile),
     __REG__(a6, struct AmiAtpBase *libbase));
